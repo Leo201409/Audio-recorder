@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Recorder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #1e1e1e;
+            color: white;
+            padding: 50px;
+        }
+        .button {
+            background-color: #007bff;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            margin: 10px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Audio Recorder</h1>
+    <button class="button" id="startBtn">Start Recording</button>
+    <button class="button" id="stopBtn" disabled>Stop Recording</button>
+    <button class="button" id="playBtn" disabled>Play Recording</button>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob;
+        let audioUrl;
+        let audio;
+
+        document.getElementById("startBtn").addEventListener("click", async () => {
+            let stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                audioUrl = URL.createObjectURL(audioBlob);
+                audio = new Audio(audioUrl);
+                document.getElementById("playBtn").disabled = false;
+            };
+
+            mediaRecorder.start();
+            document.getElementById("startBtn").disabled = true;
+            document.getElementById("stopBtn").disabled = false;
+        });
+
+        document.getElementById("stopBtn").addEventListener("click", () => {
+            mediaRecorder.stop();
+            document.getElementById("startBtn").disabled = false;
+            document.getElementById("stopBtn").disabled = true;
+        });
+
+        document.getElementById("playBtn").addEventListener("click", () => {
+            if (audio) {
+                audio.play();
+            }
+        });
+    </script>
+
+</body>
+</html>
